@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Task Tracker</string>
+    <string name="dialog_add_task_title_hint">New Task</string>
+    <string name="dialog_add_task_title_desc">Add details</string>
+    <string name="add_description">Add Description</string>
+    <string name="add_star">Add Star</string>
 </resources>

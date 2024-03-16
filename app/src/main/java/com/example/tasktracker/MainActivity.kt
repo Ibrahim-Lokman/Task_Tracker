@@ -1,15 +1,18 @@
 package com.example.tasktracker
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.tasktracker.data.Task
+import com.example.tasktracker.data.TaskDao
 import com.example.tasktracker.data.TaskTrackerDB
 import com.example.tasktracker.databinding.ActivityMainBinding
 import com.example.tasktracker.databinding.DialogAddTaskBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlin.concurrent.thread
@@ -17,6 +20,8 @@ import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var database: TaskTrackerDB
+    private val taskDao: TaskDao by lazy { database.getTaskDao() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -31,36 +36,34 @@ class MainActivity : AppCompatActivity() {
         binding.fab.setOnClickListener {
             showAddDialog()
         }
-        val database =  TaskTrackerDB.createDatabase(this)
+         database =  TaskTrackerDB.createDatabase(this)
 
-        val taskDao =  database.getTaskDao()
 
-        thread{
-            taskDao.createTask(Task(title = "A third task"))
-           val tasks =  taskDao.getAllTasks()
-            runOnUiThread {
-                Toast.makeText(this, "Number of tasks: ${tasks.size}", Toast.LENGTH_SHORT).show()
-            }
-        }
+
 
 
     }
 
     private fun showAddDialog() {
         val dialogBinding = DialogAddTaskBinding.inflate(layoutInflater)
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Add a new task")
-            .setView(dialogBinding.root)
-            .setPositiveButton("Save") { _, _ ->
-                Toast.makeText(
-                    this,
-                    "Your task is: ${dialogBinding.editText.text}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                // Respond to positive button press
+        val dialog = BottomSheetDialog(this)
+        dialog.setContentView(dialogBinding.root)
+        dialogBinding.buttonShowDetails.setOnClickListener {
+          dialogBinding.editTextTaskDesc.visibility =
+              if (dialogBinding.editTextTaskDesc.visibility == View.VISIBLE)  View.GONE else View.VISIBLE
+        }
+
+        dialogBinding.buttonSave.setOnClickListener {
+            val task = Task(
+                title = dialogBinding.editTextTaskTitle.text.toString(),
+                description = dialogBinding.editTextTaskDesc.text.toString()
+            )
+            thread {
+                taskDao.createTask(task)
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     inner class PagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(this) {
