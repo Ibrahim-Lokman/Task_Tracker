@@ -6,10 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.example.tasktracker.data.Task
+import com.example.tasktracker.data.TaskTrackerDB
 import com.example.tasktracker.databinding.ActivityMainBinding
 import com.example.tasktracker.databinding.DialogAddTaskBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlin.concurrent.thread
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +31,19 @@ class MainActivity : AppCompatActivity() {
         binding.fab.setOnClickListener {
             showAddDialog()
         }
+        val database =  TaskTrackerDB.createDatabase(this)
+
+        val taskDao =  database.getTaskDao()
+
+        thread{
+            taskDao.createTask(Task(title = "A third task"))
+           val tasks =  taskDao.getAllTasks()
+            runOnUiThread {
+                Toast.makeText(this, "Number of tasks: ${tasks.size}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
     }
 
     private fun showAddDialog() {

@@ -8,13 +8,16 @@ import com.example.tasktracker.data.Task
 
 @Database(entities = [Task::class], version =1)
 abstract class TaskTrackerDB : RoomDatabase() {
-    abstract fun taskDao(): TaskDao
+    abstract fun getTaskDao(): TaskDao
+
+    companion object {
+        fun createDatabase(context: Context) : TaskTrackerDB {
+            return  Room.databaseBuilder(
+                context,
+                TaskTrackerDB::class.java,
+                "task_tracker_db"
+            ).build()
+        }
+    }
 }
 
-fun createDatabase(context: Context) : TaskTrackerDB {
-        return  Room.databaseBuilder(
-        context,
-        TaskTrackerDB::class.java,
-        "task_tracker_db"
-    ).build()
-}
